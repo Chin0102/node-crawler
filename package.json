@@ -1,0 +1,26 @@
+{
+  "name": "node-crawler",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "description": "crawler",
+  "keywords": [
+    "crawler"
+  ],
+  "license": "ISC",
+  "author": "chin0102",
+  "private": false,
+  "files": [
+    "src",
+    "package.json"
+  ],
+  "scripts": {
+    "test": "node test"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.11",
+    "crypto-js": "^4.1.1",
+    "deepmerge": "^4.2.2",
+    "log4js": "^6.5.2"
+  }
+}
