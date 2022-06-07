@@ -5,11 +5,9 @@ const cheerio = require('cheerio')
 
 module.exports = class BaseHtmlTask extends BaseHttpTask {
 
-  getSavePath(option) {
-    let path = super.getSavePath(option)
-    let info = Path.parse(path)
-    if (!info.ext) info.base = info.name + '.html'
-    return Path.format(info)
+  getSaveName(info) {
+    let {ext, base, name} = info
+    return !!ext ? base : (name + '.html')
   }
 
   onResponse(path) {

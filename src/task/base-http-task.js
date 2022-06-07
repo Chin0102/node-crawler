@@ -2,6 +2,7 @@ const BaseTask = require('./base-task')
 const axios = require('axios')
 const OS = require('../utils/os')
 const URL = require('../utils/url')
+const Path = require('path')
 
 module.exports = class BaseHttpTask extends BaseTask {
 
@@ -11,7 +12,15 @@ module.exports = class BaseHttpTask extends BaseTask {
 
   getSavePath(option) {
     let path = option.save.path
-    if (!path) path = option.save.path = URL.toPath(option.request.url, this.provider.option.save)
+    if (!path) path = option.save.path = URL.toPath(option.request.url, {
+      preDir: this.provider.option.save,
+      name: option.save.name
+    })
+    if (this.getSaveName) {
+      let info = Path.parse(path)
+      info.base = this.getSaveName(info)
+      path = Path.format(info)
+    }
     return path
   }
 
