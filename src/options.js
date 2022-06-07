@@ -20,7 +20,7 @@ class Options {
     let options = [DEF, instance.name]
     if (opt) options.push(opt)
     options.forEach(option => {
-      let nameList = isString(option) ? (this.namespace[DEF] || []) : [option]
+      let nameList = isString(option) ? (this.namespace[option] || []) : [option]
       list.push(...nameList.map(option => isFunction(option) ? option(instance) : option))
     })
     return merge.all(list)
