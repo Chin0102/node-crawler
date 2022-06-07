@@ -28,7 +28,7 @@ module.exports = class BaseHttpTask extends BaseTask {
     const url = option.request.url
     let path = this.getSavePath(option)
     if (OS.existsSync(path)) {
-      this.provider.log(this, '[already exists]', url)
+      this.provider.log(this, '[already exists]', path)
       this.onResponse(path)
     } else {
       let oPath = URL.toPath(url, {preDir: this.provider.option.save})
