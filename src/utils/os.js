@@ -20,6 +20,10 @@ function readFileSync(path) {
   return fs.readFileSync(path)
 }
 
+function rename(oldPath, newPath) {
+  fs.renameSync(oldPath, newPath)
+}
+
 function writeFileSync(path, data) {
   mkdirSync(path)
   fs.writeFileSync(path, data)
@@ -64,5 +68,5 @@ function writeStream(path, stream) {
 // }
 
 module.exports = {
-  existsSync, mkdirSync, readFileSync, writeFileSync, writeFile, writeStream
+  existsSync, mkdirSync, readFileSync, rename, writeFileSync, writeFile, writeStream
 }

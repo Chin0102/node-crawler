@@ -31,18 +31,24 @@ module.exports = class BaseHttpTask extends BaseTask {
       this.provider.log(this, '[already exists]', url)
       this.onResponse(path)
     } else {
-      //request
-      this.provider.log(this, '[start]', url)
-      this.createRequest(option.request).then(response => {
-        this.provider.log(this, '[loaded]', url)
+      let oPath = URL.toPath(url, {preDir: this.provider.option.save})
+      if (OS.existsSync(oPath)) {
+        OS.rename(oPath, path)
+        this.promise.resolve('[rename] ' + path)
+      } else {
+        //request
+        this.provider.log(this, '[start]', url)
+        this.createRequest(option.request).then(response => {
+          this.provider.log(this, '[loaded]', url)
 
-        //save
-        OS.writeStream(path, response.data).then(_ => {
-          this.provider.log(this, '[saved]', path)
-          this.onResponse(path)
-        }).catch(e => this.promise.reject(e))
+          //save
+          OS.writeStream(path, response.data).then(_ => {
+            this.provider.log(this, '[saved]', path)
+            this.onResponse(path)
+          }).catch(e => this.promise.reject(e))
 
-      }).catch(e => this.onError(e))
+        }).catch(e => this.onError(e))
+      }
     }
   }
 
