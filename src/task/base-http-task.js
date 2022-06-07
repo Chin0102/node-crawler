@@ -57,8 +57,12 @@ module.exports = class BaseHttpTask extends BaseTask {
   }
 
   onError(e) {
-    this.provider.create(this.option, true)
-    setTimeout(() => this.promise.reject(e), 500)
+    let {time, delay} = this.option.retry
+    if (time > 0) {
+      this.option.retry.time--
+      this.provider.create(this.option, true)
+      setTimeout(() => this.promise.reject(e), delay)
+    } else this.promise.reject(e)
   }
 
 }

@@ -36,6 +36,7 @@ provider.add(provider => ({
 const task = new Options()
 task.add({
   request: {responseType: 'stream'},
+  retry: {time: 10, delay: 500},
   save: {mode: 'file'} //'mode' not used yet
 })
 
