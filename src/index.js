@@ -1,4 +1,5 @@
 const log4js = require('log4js')
+const OS = require('./utils/os')
 
 let logEnabled = false
 let providers = {}
@@ -19,9 +20,10 @@ const crawler = {
     logEnabled = enable
     let appenders = {}
     let categoriesAppenders = []
-    Object.values(providers).forEach(provider => {
+    if (enable) Object.values(providers).forEach(provider => {
       let name = provider.name
       let logPath = `${provider.option.save}crawler.log`
+      OS.remove(logPath)
       appenders[name] = {type: 'file', filename: logPath}
       categoriesAppenders.push(name)
     })

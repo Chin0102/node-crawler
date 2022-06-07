@@ -20,6 +20,10 @@ function readFileSync(path) {
   return fs.readFileSync(path)
 }
 
+function remove(path) {
+  if (existsSync(path)) fs.unlinkSync(path)
+}
+
 function rename(oldPath, newPath) {
   fs.renameSync(oldPath, newPath)
 }
@@ -68,5 +72,5 @@ function writeStream(path, stream) {
 // }
 
 module.exports = {
-  existsSync, mkdirSync, readFileSync, rename, writeFileSync, writeFile, writeStream
+  existsSync, mkdirSync, readFileSync, remove, rename, writeFileSync, writeFile, writeStream
 }
