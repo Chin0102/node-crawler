@@ -23,13 +23,13 @@ module.exports = class BaseHttpTask extends BaseTask {
       this.onResponse(path)
     } else {
       //request
-      this.provider.log(this, '[load start]', url)
+      this.provider.log(this, '[start]', url)
       this.createRequest(option.request).then(response => {
         this.provider.log(this, '[loaded]', url)
 
         //save
         OS.writeStream(path, response.data).then(_ => {
-          this.provider.log(this, '[saved]', `${path} <- (${url})`)
+          this.provider.log(this, '[saved]', path)
           this.onResponse(path)
         }).catch(e => this.promise.reject(e))
 

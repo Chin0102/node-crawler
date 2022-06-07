@@ -25,13 +25,11 @@ module.exports = class Provider {
   }
 
   log(task, ...any) {
-    console.log(`[info] [${task.name}] [${task.id}]`, ...any)
-    this.logger.info(`[${task.name}] [${task.id}]`, ...any)
+    this.logger.info(`${task.id} [${task.name}]`, ...any)
   }
 
   onError(task, error) {
-    console.log(`[error] [${task.name}] [${task.id}]`, error.toString())
-    this.logger.error(`[${task.name}] [${task.id}]`, error.toString())
+    this.logger.error(`${task.id} [${task.name}]`, error.toString())
   }
 
   start() {
