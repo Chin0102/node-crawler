@@ -16,7 +16,7 @@ const crawler = {
     provider.create(taskOption, unshift)
     return this
   },
-  log(enable) {
+  log(enable, level = 'error') {
     logEnabled = enable
     let appenders = {}
     let categoriesAppenders = []
@@ -27,7 +27,7 @@ const crawler = {
       appenders[name] = {type: 'file', filename: logPath}
       categoriesAppenders.push(name)
     })
-    log4js.configure({appenders, categories: {default: {appenders: categoriesAppenders, level: 'info'}}})
+    log4js.configure({appenders, categories: {default: {appenders: categoriesAppenders, level}}})
   }
 }
 

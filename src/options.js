@@ -29,14 +29,14 @@ class Options {
 
 const provider = new Options()
 provider.add(provider => ({
-  concurrent: 1,
+  concurrent: 2,
   save: `./.save/${provider.name}/`
 }))
 
 const task = new Options()
 task.add({
   request: {responseType: 'stream'},
-  retry: {time: 10, delay: 500},
+  retry: {time: 2, delay: 200},
   save: {mode: 'file'} //'mode' not used yet
 })
 
