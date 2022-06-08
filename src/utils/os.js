@@ -25,6 +25,7 @@ function remove(path) {
 }
 
 function rename(oldPath, newPath) {
+  mkdirSync(newPath)
   fs.renameSync(oldPath, newPath)
 }
 

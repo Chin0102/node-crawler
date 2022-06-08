@@ -31,18 +31,18 @@ module.exports = class BaseHttpTask extends BaseTask {
       this.provider.log(this, '[already exists]', path)
       this.onResponse(path)
     } else {
-      let oPath = URL.toPath(url, {preDir: this.provider.option.save})
+      let oPath = option.check && option.check.path
+      if (!oPath) oPath = URL.toPath(url, {preDir: this.provider.option.save})
       if (OS.existsSync(oPath)) {
         OS.rename(oPath, path)
         this.promise.resolve('[rename] ' + path)
       } else {
         //request
-        this.provider.log(this, '[start]', url)
         this.createRequest(option.request).then(response => {
-          this.provider.log(this, '[loaded]', url)
-
+          this.provider.log(this, '[start]', url)
           //save
-          OS.writeStream(path, response.data).then(_ => {
+          OS.writeStream(path + '.temp', response.data).then(_ => {
+            OS.rename(path + '.temp', path)
             this.provider.log(this, '[saved]', path)
             this.onResponse(path)
           }).catch(e => this.promise.reject(e))
@@ -62,7 +62,7 @@ module.exports = class BaseHttpTask extends BaseTask {
       this.option.retry.time--
       this.provider.create(this.option, true)
       setTimeout(() => this.promise.reject(e), delay)
-    } else this.promise.reject(e)
+    } else this.promise.reject(new Error(`[failed] ${this.option.request.url}`))
   }
 
 }
