@@ -12,7 +12,7 @@ function mkdirSync(osPath) {
     temp += part + '/'
     if (part === '.' || part === '') continue
     let exists = fs.existsSync(temp)
-    if (!exists) fs.mkdirSync(temp)
+    if (!exists || !fs.statSync(temp).isDirectory()) fs.mkdirSync(temp)
   }
 }
 

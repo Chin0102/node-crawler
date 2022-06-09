@@ -5,14 +5,8 @@ const cheerio = require('cheerio')
 
 module.exports = class BaseHtmlTask extends BaseHttpTask {
 
-  getSaveName(info) {
-    let {ext, base, name} = info
-    return !!ext ? base : (name + '.html')
-  }
-
   onResponse(path) {
-    const body = OS.readFileSync(path)
-    this.onParseHTML(cheerio.load(body))
+    this.onParseHTML(cheerio.load(OS.readFileSync(path)))
   }
 
   onParseHTML($) {

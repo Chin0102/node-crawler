@@ -2,7 +2,6 @@ const BaseTask = require('./base-task')
 const axios = require('axios')
 const OS = require('../utils/os')
 const URL = require('../utils/url')
-const Path = require('path')
 
 module.exports = class BaseHttpTask extends BaseTask {
 
@@ -10,50 +9,39 @@ module.exports = class BaseHttpTask extends BaseTask {
     return axios.request(config)
   }
 
-  getSavePath(option) {
-    let path = option.save.path
-    if (!path) path = option.save.path = URL.toPath(option.request.url, {
-      preDir: this.provider.option.save,
-      name: option.save.name
-    })
-    if (this.getSaveName) {
-      let info = Path.parse(path)
-      info.base = this.getSaveName(info)
-      path = Path.format(info)
-    }
-    return path
+  getPath(url, save, saveDefault) {
+    if (save.path) return save.path
+    return URL.toPath(url, save, saveDefault)
   }
 
   onStart(option) {
     const url = option.request.url
-    let path = this.getSavePath(option)
-    if (OS.existsSync(path)) {
-      this.provider.log(this, '[already exists]', path)
-      this.onResponse(path)
-    } else {
-      let oPath = option.check && option.check.path
-      if (!oPath) oPath = URL.toPath(url, {preDir: this.provider.option.save})
-      if (OS.existsSync(oPath)) {
-        OS.rename(oPath, path)
-        this.promise.resolve('[rename] ' + path)
-      } else {
-        //request
-        this.createRequest(option.request).then(response => {
-          this.provider.log(this, '[start]', url)
-          //save
-          OS.writeStream(path + '.temp', response.data).then(_ => {
-            OS.rename(path + '.temp', path)
-            this.provider.log(this, '[saved]', path)
-            this.onResponse(path)
-          }).catch(e => this.promise.reject(e))
 
-        }).catch(e => this.onError(e))
+    //if exists then pass
+    let path = this.getPath(url, option.save, option.saveDefault)
+    if (OS.existsSync(path)) return this.onResponse(path, 'exists')
+
+    //check if checkPath exists then rename
+    if (option.check) {
+      let checkPath = this.getPath(url, option.check, option.saveDefault)
+      if (OS.existsSync(checkPath)) {
+        OS.rename(checkPath, path)
+        return this.onResponse(path, 'rename')
       }
     }
+
+    //request
+    this.createRequest(option.request).then(response => {
+      this.provider.log(this, '[start]', url)
+      OS.writeStream(path + '.temp', response.data).then(_ => {
+        OS.rename(path + '.temp', path)
+        this.onResponse(path, 'saved')
+      }).catch(e => this.promise.reject(e))
+    }).catch(e => this.onError(e))
   }
 
-  onResponse(path) {
-    this.promise.resolve('')
+  onResponse(path, type) {
+    this.promise.resolve(`[${type}] ${path}`)
   }
 
   onError(e) {

@@ -28,16 +28,17 @@ class Options {
 }
 
 const provider = new Options()
-provider.add(provider => ({
+provider.add(ins => ({
   concurrent: 2,
-  save: `./.save/${provider.name}/`
+  save: `./.save/${ins.name}/`
 }))
 
 const task = new Options()
-task.add({
+task.add(ins => ({
   request: {responseType: 'stream'},
   retry: {time: 2, delay: 200},
-  save: {mode: 'file'} //'mode' not used yet
-})
+  saveDefault: {name: 'index', ext: '.html'},
+  save: {mode: 'file', preDir: `./.save/${ins.provider.name}/`, dropQuery: false} //'mode' not used yet
+}))
 
 module.exports = {provider, task}

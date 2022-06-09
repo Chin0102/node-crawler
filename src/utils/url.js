@@ -7,12 +7,13 @@ function parse(url) {
   return Object.assign({}, urlInfo, pathInfo)
 }
 
-function toPath(url, option) {
-  option = Object.assign({preDir: ''}, option)
-  let {root, host, dir, base, query, name, ext} = parse(decodeURI(url))
-  if (option.name) base = option.name
-  else if (query) base = `${name}(${query})${ext}`
-  return Path.join(option.preDir, root, host, dir, base)
+function toPath(url, option, defOption) {
+  let info = parse(decodeURI(url))
+  if (!info.name) delete info.name
+  if (!info.ext) delete info.ext
+  let {preDir, host, dir, name, ext, dropQuery, query} = Object.assign({preDir: '/', dropQuery: false}, defOption, info, option)
+  if (query && !dropQuery) name = `${name}(${query})`
+  return Path.join(option.preDir, host, dir, `${name}${ext}`)
 }
 
 module.exports = {
