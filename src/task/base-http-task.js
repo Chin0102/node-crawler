@@ -32,25 +32,20 @@ module.exports = class BaseHttpTask extends BaseTask {
 
     //request
     this.createRequest(option.request).then(response => {
-      this.provider.log(this, '[start]', url)
+      this.context.log('[start]', url)
       OS.writeStream(path + '.temp', response.data).then(_ => {
         OS.rename(path + '.temp', path)
         this.onResponse(path, 'saved')
-      }).catch(e => this.promise.reject(e))
+      }).catch(e => this.context.reject(e))
     }).catch(e => this.onError(e))
   }
 
   onResponse(path, type) {
-    this.promise.resolve(`[${type}] ${path}`)
+    this.context.resolve(`[${type}] ${path}`)
   }
 
-  onError(e) {
-    let {time, delay} = this.option.retry
-    if (time > 0) {
-      this.option.retry.time--
-      this.provider.create(this.option, true)
-      setTimeout(() => this.promise.reject(e), delay)
-    } else this.promise.reject(new Error(`[failed] ${this.option.request.url}`))
+  onError(error) {
+    this.context.retry(error, new Error(`[failed] ${this.option.request.url}`))
   }
 
 }

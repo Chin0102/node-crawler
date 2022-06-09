@@ -1,12 +1,13 @@
 const log4js = require('log4js')
 const options = require('./options')
+const Context = require('./context')
 
 module.exports = class Provider {
   constructor(name, Tasks, option) {
     this.logger = log4js.getLogger(name)
     this.name = name
     this.running = new Set()
-    this.queue = []
+    this.queue = {}
     this.Tasks = Tasks || {}
     this.num = 0
     this.option = options.provider.get(this, option)
@@ -19,27 +20,33 @@ module.exports = class Provider {
   create(option, unshift) {
     if (!option || !option.task || !this.Tasks.hasOwnProperty(option.task)) throw new Error(`miss task '${option && option.task}'`)
     if (!option.id) option.id = this.num++
-    if (unshift) this.queue.unshift(option)
-    else this.queue.push(option)
+    if (!option.order) option.order = 0
+    let q = this.queue[option.order]
+    if (!q) q = this.queue[option.order] = []
+    if (unshift) q.unshift(option)
+    else q.push(option)
     this.start()
   }
 
   log(task, ...any) {
-    this.logger.info(`${task.id} [${task.name}]`, ...any)
+    this.logger.info(`${task.option.id} [${task.option.order}] [${task.name}]`, ...any)
   }
 
   onError(task, error) {
-    this.logger.error(`${task.id} [${task.name}]`, error.toString())
+    this.logger.error(`${task.option.id} [${task.option.order}] [${task.name}]`, error.toString())
   }
 
   start() {
-    if (this.isFullLoad || this.queue.length === 0) return
-    let option = this.queue.shift()
-    let {task: name, id} = option
+    if (this.isFullLoad) return
+    let order = Object.keys(this.queue).map(order => parseInt(order)).sort().shift()
+    if (order === undefined) return
+    let q = this.queue[order]
+    let option = q.shift()
+    if (q.length === 0) delete this.queue[order]
+    let name = option.task
     let task = new (this.Tasks[name])()
-    task.id = id
     task.name = name
-    task.provider = this
+    task.context = new Context(this, task)
     this.running.add(task)
     task.start(options.task.get(task, option))
       .then(msg => this.log(task, `[done] ${msg}`))

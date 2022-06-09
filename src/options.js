@@ -36,9 +36,9 @@ provider.add(ins => ({
 const task = new Options()
 task.add(ins => ({
   request: {responseType: 'stream'},
-  retry: {time: 2, delay: 200},
+  retry: {time: 5, delay: 100},
   saveDefault: {name: 'index', ext: '.html'},
-  save: {mode: 'file', preDir: `./.save/${ins.provider.name}/`, dropQuery: false} //'mode' not used yet
+  save: {mode: 'file', preDir: `./.save/${ins.context.provider.name}/`, dropQuery: false} //'mode' not used yet
 }))
 
 module.exports = {provider, task}
