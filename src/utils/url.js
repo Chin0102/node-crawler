@@ -11,9 +11,9 @@ function toPath(url, option, defOption) {
   let info = parse(decodeURI(url))
   if (!info.name) delete info.name
   if (!info.ext) delete info.ext
-  let {preDir, host, dir, name, ext, dropQuery, query} = Object.assign({preDir: '/', dropQuery: false}, defOption, info, option)
+  let {rootDir, host, dir, name, ext, dropQuery, query} = Object.assign({rootDir: '/', dropQuery: false}, defOption, info, option)
   if (query && !dropQuery) name = `${name}(${query})`
-  return Path.join(option.preDir, host, dir, `${name}${ext}`)
+  return Path.join(rootDir, host, dir, `${name}${ext}`)
 }
 
 module.exports = {

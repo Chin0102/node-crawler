@@ -1,4 +1,4 @@
-const BaseHttpTask = require('./base-http-task')
+const BaseHttpTask = require('./http-task')
 const OS = require('../utils/os')
 const cheerio = require('cheerio')
 

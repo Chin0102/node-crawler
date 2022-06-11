@@ -1,11 +1,13 @@
 const BaseTask = require('./base-task')
-const axios = require('axios')
 const OS = require('../utils/os')
 const URL = require('../utils/url')
 
+const axios = require('axios')
+const contentType = require('content-type')
+
 module.exports = class BaseHttpTask extends BaseTask {
 
-  createRequest(config) {
+  getRequest(config) {
     return axios.request(config)
   }
 
@@ -31,21 +33,22 @@ module.exports = class BaseHttpTask extends BaseTask {
     }
 
     //request
-    this.createRequest(option.request).then(response => {
-      this.context.log('[start]', url)
+    this.getRequest(option.request).then(response => {
+      this.log('[start]', url)
+      const content = contentType.parse(response.headers['content-type'])
       OS.writeStream(path + '.temp', response.data).then(_ => {
         OS.rename(path + '.temp', path)
         this.onResponse(path, 'saved')
-      }).catch(e => this.context.reject(e))
+      }).catch(e => this.failed(e))
     }).catch(e => this.onError(e))
   }
 
   onResponse(path, type) {
-    this.context.resolve(`[${type}] ${path}`)
+    this.done(`[${type}] ${path}`)
   }
 
   onError(error) {
-    this.context.retry(error, new Error(`[failed] ${this.option.request.url}`))
+    this.retry(error, new Error(`[failed] ${this.option.request.url}`))
   }
 
 }
