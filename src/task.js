@@ -1,9 +1,9 @@
-import url from 'url'
-import path from 'path'
-import merge from 'deepmerge'
-import fs from './fs'
-import cheerio from 'cheerio'
-import axios from 'axios'
+const url = require('url')
+const path = require('path')
+const merge = require('deepmerge')
+const fs = require('./fs')
+const cheerio = require('cheerio')
+const axios = require('axios')
 
 function urlToPath(requestUrl, save, saveDefault) {
   if (save.path) return save.path
