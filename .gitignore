@@ -1,9 +1,5 @@
 .DS_Store
 node_modules
-/.bak
-/.save
-/test
-
 
 # local env files
 .env.local
