@@ -2,32 +2,25 @@ const os = require('os')
 const path = require('path')
 const merge = require('deepmerge')
 const log4js = require('log4js')
-
-let logger = console
-const CommonOption = '_common_option_'
-const Config = {
-  rootDir: os.homedir(),
-  Tasks: {
-    saveAsFile: require('./task/http-task'),
-    htmlRes: require('./task/html-resource')
-  }
-}
+const Task = require('./task')
+const appenders = {}
+const DefaultOption = 'default'
 
 class TaskOptions {
   constructor() {
     this.namespace = {}
   }
 
-  add(option, name) {
-    if (!name || name === '') name = CommonOption
-    let current = this.namespace[name] || {}
-    this.namespace[name] = merge(current, option)
+  add(option, preset) {
+    if (!preset || preset === '') preset = DefaultOption
+    let current = this.namespace[preset] || {}
+    this.namespace[preset] = merge(current, option)
   }
 
-  get(name, option) {
+  get(preset, option) {
     return merge.all([
-      this.namespace[CommonOption] || {},
-      this.namespace[name] || {},
+      this.namespace[DefaultOption] || {},
+      (preset !== DefaultOption && this.namespace[preset]) || {},
       option || {}
     ])
   }
@@ -35,68 +28,65 @@ class TaskOptions {
 
 module.exports = class Crawler {
 
-  static registerTasks(TaskMap) {
-    Object.assign(Config.Tasks, TaskMap)
-  }
-
-  static setRootDir(dir) {
-    Config.rootDir = dir
-    log4js.configure({
-      appenders: {crawler: {type: 'file', filename: path.resolve(dir, './save/crawler.log')}},
-      categories: {default: {appenders: ['crawler'], level: 'info'}}
-    })
-    logger = log4js.getLogger('crawler')
-  }
-
-  constructor(name = 'crawler', option) {
-    this.name = name
+  constructor(option) {
     this._taskRunning = new Set()
     this._optQueue = {}
     this._index = 0
 
-    const rootDir = Config.rootDir
-
-    this.option = merge.all([{
+    this.option = Object.assign({
       concurrent: 2,
-      saveRoot: `./save/${name}/`,
-      tempRoot: `./temp/${name}/`
-    }, option, {name}].filter(opt => !!opt))
+      rootDir: os.homedir(),
+      logName: 'crawler',
+      logFileName: './crawler.log',
+      saveRoot: './save/',
+      tempRoot: './temp/'
+    }, option)
 
-    let saveRoot = path.resolve(rootDir, this.option.saveRoot)
-    let tempRoot = path.resolve(rootDir, this.option.tempRoot) //TODO not used yet
+    let {rootDir, saveRoot, tempRoot, logName, logFileName} = this.option
+    saveRoot = path.resolve(rootDir, saveRoot)
+    tempRoot = path.resolve(rootDir, tempRoot) //'tempRoot' not used yet
+    appenders[logName] = {type: 'file', filename: path.resolve(rootDir, logFileName)}
 
-    this.taskOptions = new TaskOptions()
-    this.taskOptions.add({
-      task: 'saveAsFile',
-      priority: 0,
-      request: {responseType: 'stream'},
+    this._taskOptions = new TaskOptions()
+    this._taskOptions.add({
+      preset: DefaultOption, priority: 0,
+      request: {responseType: 'stream', headers: {}},
       retry: {time: 5, delay: 100},
       saveDefault: {name: 'index', ext: '.html'},
       save: {mode: 'file', rootDir: saveRoot, dropQuery: false} //'mode' not used yet
     })
   }
 
+  enableLog() {
+    log4js.configure({appenders, categories: {default: {appenders: Object.keys(appenders), level: 'info'}}})
+    this.logger = log4js.getLogger(this.option.logName)
+  }
+
   get isFullLoad() {
     return this._taskRunning.size >= this.option.concurrent
   }
 
-  queue(option, unshift) {
-    if (!option || !option.task || !Config.Tasks.hasOwnProperty(option.task)) throw new Error(`miss task '${option && option.task}'`)
+  preset(option, ...tasks) {
+    if (tasks.length === 0) this._taskOptions.add(option)
+    else tasks.forEach(task => this._taskOptions.add(option, task))
+  }
+
+  queue(option) {
+    if (!option) return
     if (!option.id) option.id = this._index++
-    option = this.taskOptions.get(option.task, option)
+    option = this._taskOptions.get(option.preset, option)
     let queue = this._optQueue[option.priority]
     if (!queue) queue = this._optQueue[option.priority] = []
-    if (unshift) queue.unshift(option)
-    else queue.push(option)
+    queue.push(option)
     this.start()
   }
 
-  log(task, ...any) {
-    logger.info(`${task.option.id} [${task.option.priority}] [${task.name}]`, ...any)
+  log(option, ...any) {
+    this.logger.info(`[id:${option.id}] [priority:${option.priority}] [preset:${option.preset}]`, ...any)
   }
 
-  logError(task, error) {
-    logger.error(`${task.option.id} [${task.option.priority}] [${task.name}]`, error.toString())
+  logError(option, error) {
+    this.logger.error(`[id:${option.id}] [priority:${option.priority}] [preset:${option.preset}]`, error.toString())
   }
 
   start() {
@@ -107,12 +97,11 @@ module.exports = class Crawler {
     let option = queue.shift()
     if (queue.length === 0) delete this._optQueue[priority]
 
-    let task = new (Config.Tasks[option.task])()
-    task._crawler = this
+    let task = new Task()
     this._taskRunning.add(task)
-    task.start(option)
-      .then(msg => this.log(task, '[done]', msg))
-      .catch(error => this.logError(task, error))
+    task.start(this, option)
+      .then(msg => this.log(option, '[done]', msg))
+      .catch(error => this.logError(option, error))
       .finally(() => {
         this._taskRunning.delete(task)
         this.start()

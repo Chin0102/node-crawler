@@ -5,9 +5,10 @@ function existsSync(path) {
   return fs.existsSync(path)
 }
 
-function mkdirSync(dir) {
-  if (fs.existsSync(dir)) return true
-  if (mkdirSync(path.dirname(dir))) fs.mkdirSync(dir)
+function mkdirSync(dirPath, pathIsFile) {
+  if (pathIsFile) dirPath = path.parse(dirPath).dir
+  if (existsSync(dirPath)) return true
+  if (mkdirSync(path.dirname(dirPath))) fs.mkdirSync(dirPath)
   return true
 }
 
@@ -20,17 +21,17 @@ function remove(path) {
 }
 
 function rename(oldPath, newPath) {
-  mkdirSync(newPath)
+  mkdirSync(newPath, true)
   fs.renameSync(oldPath, newPath)
 }
 
 function writeFileSync(path, data) {
-  mkdirSync(path)
+  mkdirSync(path, true)
   fs.writeFileSync(path, data)
 }
 
 function writeFile(path, data) {
-  mkdirSync(path)
+  mkdirSync(path, true)
   let writer = fs.createWriteStream(path)
   return new Promise(((resolve, reject) => {
     writer.on('finish', () => resolve(path))
@@ -41,7 +42,7 @@ function writeFile(path, data) {
 }
 
 function writeStream(path, stream) {
-  mkdirSync(path)
+  mkdirSync(path, true)
   let writer = fs.createWriteStream(path)
   return new Promise(((resolve, reject) => {
     writer.on('finish', () => resolve(path))
@@ -49,23 +50,6 @@ function writeStream(path, stream) {
     stream.pipe(writer)
   }))
 }
-
-// function writeStream(path, stream, read, option) {
-//   mkdirSync(path)
-//   if (read) option = Object.assign({encoding: 'utf8'}, option)
-//   let writer = fs.createWriteStream(path)
-//   let body = ''
-//   return new Promise(((resolve, reject) => {
-//     if (read) writer.on('pipe', reader => {
-//       reader.setEncoding(option.encoding)
-//       reader.on('data', (chunk) => body += chunk)
-//       // reader.on('end', () => console.log('reader end'))
-//     })
-//     writer.on('finish', () => resolve(body))
-//     writer.on('error', e => reject(e))
-//     stream.pipe(writer)
-//   }))
-// }
 
 module.exports = {
   existsSync, mkdirSync, readFileSync, remove, rename, writeFileSync, writeFile, writeStream
