@@ -3,13 +3,8 @@ const OS = require('../utils/os')
 const URL = require('../utils/url')
 
 const axios = require('axios')
-const contentType = require('content-type')
 
 module.exports = class BaseHttpTask extends BaseTask {
-
-  getRequest(config) {
-    return axios.request(config)
-  }
 
   getPath(url, save, saveDefault) {
     if (save.path) return save.path
@@ -33,9 +28,8 @@ module.exports = class BaseHttpTask extends BaseTask {
     }
 
     //request
-    this.getRequest(option.request).then(response => {
+    axios.request(option.request).then(response => {
       this.log('[start]', url)
-      const content = contentType.parse(response.headers['content-type'])
       OS.writeStream(path + '.temp', response.data).then(_ => {
         OS.rename(path + '.temp', path)
         this.onResponse(path, 'saved')

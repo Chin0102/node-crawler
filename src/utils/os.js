@@ -1,19 +1,14 @@
 const fs = require('fs')
-const {parse} = require('path')
+const path = require('path')
 
 function existsSync(path) {
   return fs.existsSync(path)
 }
 
-function mkdirSync(osPath) {
-  let temp = '', pathList = parse(osPath).dir.split('/')
-  while (pathList.length > 0) {
-    let part = pathList.shift()
-    temp += part + '/'
-    if (part === '.' || part === '') continue
-    let exists = fs.existsSync(temp)
-    if (!exists || !fs.statSync(temp).isDirectory()) fs.mkdirSync(temp)
-  }
+function mkdirSync(dir) {
+  if (fs.existsSync(dir)) return true
+  if (mkdirSync(path.dirname(dir))) fs.mkdirSync(dir)
+  return true
 }
 
 function readFileSync(path) {
