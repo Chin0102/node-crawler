@@ -46,6 +46,8 @@ module.exports = class Crawler {
     saveRoot = path.resolve(rootDir, saveRoot)
     tempRoot = path.resolve(rootDir, tempRoot) //'tempRoot' not used yet
     appenders[logName] = {type: 'file', filename: path.resolve(rootDir, logFileName)}
+    log4js.configure({appenders, categories: {default: {appenders: Object.keys(appenders), level: 'info'}}})
+    this.logger = log4js.getLogger(this.option.logName)
 
     this._taskOptions = new TaskOptions()
     this._taskOptions.add({
@@ -55,11 +57,6 @@ module.exports = class Crawler {
       saveDefault: {name: 'index', ext: '.html'},
       save: {mode: 'file', rootDir: saveRoot, dropQuery: false} //'mode' not used yet
     })
-  }
-
-  enableLog() {
-    log4js.configure({appenders, categories: {default: {appenders: Object.keys(appenders), level: 'info'}}})
-    this.logger = log4js.getLogger(this.option.logName)
   }
 
   get isFullLoad() {

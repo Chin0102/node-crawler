@@ -1,4 +1,4 @@
-# node-crawler
+# just-crawl
 
 ## demo
 
@@ -7,8 +7,6 @@ const Crawler = require('just-crawl')
 const URL = require('url')
 
 const testCrawler = new Crawler({rootDir: __dirname})
-
-testCrawler.enableLog()
 
 testCrawler.preset({
   onCrawl(context) {
