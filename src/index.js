@@ -54,6 +54,7 @@ module.exports = class Crawler {
       preset: DefaultOption, priority: 0,
       request: {responseType: 'stream', headers: {}},
       retry: {time: 5, delay: 100},
+      ignoreCache: false,
       saveDefault: {name: 'index', ext: '.html'},
       save: {mode: 'file', rootDir: saveRoot, dropQuery: false} //'mode' not used yet
     })

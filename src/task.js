@@ -73,7 +73,8 @@ module.exports = class Task {
 
       const url = option.request.url
       let path = urlToPath(url, option.save, option.saveDefault)
-      if (fs.existsSync(path)) return this.onCrawl({exists: true, url, path}, resolve)
+
+      if (!option.ignoreCache && fs.existsSync(path)) return this.onCrawl({exists: true, url, path}, resolve)
 
       if (option.check) {
         let checkPath = urlToPath(url, option.check, option.saveDefault)
