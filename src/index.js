@@ -53,7 +53,7 @@ module.exports = class Crawler {
     this._taskOptions.add({
       preset: DefaultOption, priority: 0,
       request: {responseType: 'stream', headers: {}},
-      retry: {time: 5, delay: 100},
+      retry: {time: 2, delay: 100},
       ignoreCache: false,
       saveDefault: {name: 'index', ext: '.html'},
       save: {mode: 'file', rootDir: saveRoot, dropQuery: false} //'mode' not used yet

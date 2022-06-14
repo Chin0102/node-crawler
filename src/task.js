@@ -72,7 +72,7 @@ module.exports = class Task {
       this.callback('onStart')
 
       const url = option.request.url
-      let path = urlToPath(url, option.save, option.saveDefault)
+      const path = urlToPath(url, option.save, option.saveDefault)
 
       if (!option.ignoreCache && fs.existsSync(path)) return this.onCrawl({exists: true, url, path}, resolve)
 
@@ -84,18 +84,24 @@ module.exports = class Task {
         }
       }
 
-      axios.request(option.request).then(response => {
-        fs.writeStream(path + '.temp', response.data).then(_ => {
-          fs.rename(path + '.temp', path)
-          this.onCrawl({url, path}, resolve)
-        }).catch(e => this.onError(e, reject))
-      }).catch(e => {
-        let {time, delay} = option.retry
-        if (time > 0) {
-          option.retry.time--
-          setTimeout(() => this.start(crawler, option), delay)
-        } else this.onError(e, reject)
-      })
+      this.request(option, path, resolve, reject)
+    })
+  }
+
+  request(option, path, resolve, reject) {
+    const url = option.request.url
+    this.context.log(`[request] ${url}`)
+    axios.request(option.request).then(response => {
+      fs.writeStream(path + '.temp', response.data).then(_ => {
+        fs.rename(path + '.temp', path)
+        this.onCrawl({url, path}, resolve)
+      }).catch(e => this.onError(e, reject))
+    }).catch(e => {
+      let {time, delay} = option.retry
+      if (time > 0) {
+        option.retry.time--
+        setTimeout(() => this.request(option, path, resolve, reject), delay)
+      } else this.onError(e, reject)
     })
   }
 
